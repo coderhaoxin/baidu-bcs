@@ -1,0 +1,32 @@
+{
+  "name": "baidu-bcs",
+  "version": "0.0.1",
+  "description": "baidu bcs node.js sdk",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coderhaoxin/baidu-bcs.git"
+  },
+  "keywords": [
+    "baidu",
+    "cloud",
+    "store",
+    "bcs"
+  ],
+  "author": "haoxin",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/coderhaoxin/baidu-bcs/issues"
+  },
+  "homepage": "https://github.com/coderhaoxin/baidu-bcs",
+  "dependencies": {
+    "mime": "~1.2.11",
+    "async": "~0.2.9"
+  },
+  "devDependencies": {
+    "should": "~2.1.1"
+  }
+}
