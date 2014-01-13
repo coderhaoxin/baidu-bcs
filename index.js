@@ -1,3 +1,4 @@
+var debug  = require('debug')('bcs')
 var fs     = require('fs')
 var crypto = require('crypto')
 var http   = require('http')
@@ -10,9 +11,9 @@ var BCS = function (options) {
 	options = options || {}
 	this.accessKey = options.accessKey
 	this.secretKey = options.secretKey
-	this.hostname  = options.hostname || 'bcs.duapp.com'
+	this.host      = options.host || 'bcs.duapp.com'
 	this.protocol  = options.protocol || 'http:'
-	this.port      = options.port     || 3333
+	this.port      = options.port     || 80
 	this.ip        = options.ip // 允许上传的ip，默认为空，即：不限制ip
 	this.time      = options.time // 有效时间
 	this.size      = options.size // 限制上传最大字节
@@ -35,9 +36,9 @@ BCS.prototype.generateSign = function (options) {
 
 	// content
 	var flag = 'MBO'
-	var content = 'Method=' + options['method'] + '\n'
-							+ 'Bucket=' + options['bucket'] + '\n'
-							+ 'Object=' + options['object'] + '\n'
+	var content = 'Method=' + options.method + '\n'
+							+ 'Bucket=' + options.bucket + '\n'
+							+ 'Object=' + options.object + '\n'
 
 	if (self.time) {
 		flag += 'T'
@@ -54,7 +55,7 @@ BCS.prototype.generateSign = function (options) {
 	content = flag + '\n' + content
 
 	var signature = generateSignature(self.secretKey, content)
-	var sign = flag + ':' + self.accessKey + ':' + signature
+	var sign = flag + ':' + self.accessKey + ':' + encodeURIComponent(signature)
 	return sign
 }
 
@@ -73,81 +74,98 @@ function generateSignature (secretKey, content) {
 * }
 */
 BCS.prototype.request = function (options, callback) {
-	options = options || {}
-	var self = this
-	options.hostname = self.hostname
+	options      = options || {}
+	var self     = this
+	options.host = self.host
+	options.port = self.port
+
+	if (options.path) {
+		options.path.split('/').map(function (item) {
+			return encodeURIComponent(item)
+		}).join('/')
+	}
+
+	debug('request options:\n', options)
 
 	var response = {}
 
 	var req = http.request(options, function (res) {
-		response['status'] = res.statusCode
-		response['headers'] = res.headers
-		response['body'] = ''
+		response.status = res.statusCode
+		response.headers = res.headers
+		response.body = ''
 
 		res.setEncoding('utf8')
 
 		res.on('data', function (chunk) {
-			response['body'] += chunk
+			response.body += chunk
 		})
 		res.on('end', function () {
+			debug('response:\n', response)
+
+			try {
+				response.body = JSON.parse(response.body)
+			} catch (e) {}
 			callback(null, response)
 		})
+	})
 
-		if (options['headers']) {
-			for (var header in options['headers']) {
-				req.setHeader(header, options['headers'])
-			}
+	if (options.headers) {
+		for (var header in options.headers) {
+			req.setHeader(header, options.headers[header])
 		}
+	}
 
-		req.on('error', function (error) {
-			callback(error, null)
-		})
+	req.on('error', function (error) {
+		callback(error, null)
+	})
 
-		/*
-		* body
-		*/
-		if (options.source) {
-			if (typeof options.source === 'string') {
-				dealSourceWithFilePath(options.source)
-			} else if (Buffer.isBuffer(options.source)) {
-				dealSourceWithBuffer(options.source)
-			} else if (options.source instanceof Stream) {
-				dealSourceWithStream(options.source)
-			} else {
-				req.end()
-			}
+	/*
+	* body
+	*/
+	if (options.source) {
+		if (typeof options.source === 'string') {
+			dealSourceWithFilePath(options.source)
+		} else if (Buffer.isBuffer(options.source)) {
+			dealSourceWithBuffer(options.source)
+		} else if (options.source instanceof Stream) {
+			dealSourceWithStream(options.source)
 		} else {
 			req.end()
 		}
+	} else {
+		req.end()
+	}
 
-		function dealSourceWithFilePath(filepath) {
-			var contentType = mime.lookup(options.source)
-			var contentLength = 0
-			async.series([
-				function (cb) {
-					fs.stat(filepath, function (error, stats) {
-						if (error) {
-							return cb(error)
-						}
-						contentLength = stats.size
-						cb(null)
-					})
-				}
-			], function (error) {
-				if (contentType) req.setHeader('Content-Type', contentType)
-				if (contentLength) req.setHeader('Content-Length', contentLength)
-				fs.createReadStream(filepath).pipe(req)
-			})
-		}
-		function dealSourceWithBuffer(bufferSource) {
-			var contentLength = bufferSource.length
+	function dealSourceWithFilePath(filepath) {
+		var contentType = mime.lookup(options.source)
+		var contentLength = 0
+		async.series([
+			function (cb) {
+				fs.stat(filepath, function (error, stats) {
+					if (error) {
+						return cb(error)
+					}
+					contentLength = stats.size
+					cb(null)
+				})
+			}
+		], function (error) {
+			if (error) {
+				return callback(error)
+			}
+			if (contentType) req.setHeader('Content-Type', contentType)
 			if (contentLength) req.setHeader('Content-Length', contentLength)
-			req.end(bufferSource)
-		}
-		function dealSourceWithStream(streamSource) {
-			fs.createReadStream(streamSource).pipe(req)
-		}
-	})
+			fs.createReadStream(filepath).pipe(req)
+		})
+	}
+	function dealSourceWithBuffer(bufferSource) {
+		var contentLength = bufferSource.length
+		if (contentLength) req.setHeader('Content-Length', contentLength)
+		req.end(bufferSource)
+	}
+	function dealSourceWithStream(streamSource) {
+		fs.createReadStream(streamSource).pipe(req)
+	}
 }
 
 
@@ -221,7 +239,32 @@ BCS.prototype.listBucket = function (callback) {
 * delete Bucket
 */
 BCS.prototype.deleteBucket = function (options, callback) {
+	options  = options || {}
+	callback = callback || noop
+	var self = this
 
+	// headers
+	var headers = {
+		'Content-Length': 0
+	}
+	if (options.acl) {
+		headers['x-bs-acl'] = options.acl
+	}
+
+	// path
+	var path = '/' + options.bucket + '?sign=' + self.generateSign({
+		method: 'DELETE',
+		bucket: options.bucket,
+		object: '/'
+	})
+
+	self.request({
+		path: path,
+		method: 'DELETE',
+		headers: headers
+	}, function (error, response) {
+		callback(error, response)
+	})
 }
 
 /*
@@ -283,14 +326,60 @@ BCS.prototype.deleteObject = function (options, callback) {
 * put acl
 */
 BCS.prototype.putAcl = function (options, callback) {
+	options  = options || {}
+	callback = callback || noop
+	var self = this
 
+	// headers
+	var headers = {
+		'Content-Length': 0
+	}
+	headers['x-bs-acl'] = options.acl
+
+
+	// path
+	var path = '/' + options.bucket + '?acl=1&sign=' + self.generateSign({
+		method: 'PUT',
+		bucket: options.bucket,
+		object: '/'
+	})
+
+	self.request({
+		path: path,
+		method: 'PUT',
+		headers: headers
+	}, function (error, response) {
+		callback(error, response)
+	})
 }
 
 /*
 * get acl
 */
 BCS.prototype.getAcl = function (options, callback) {
+	options  = options || {}
+	callback = callback || noop
+	var self = this
 
+	// headers
+	var headers = {
+		'Content-Length': 0
+	}
+
+	// path
+	var path = '/' + options.bucket + '?acl=1&sign=' + self.generateSign({
+		method: 'GET',
+		bucket: options.bucket,
+		object: '/'
+	})
+
+	self.request({
+		path: path,
+		method: 'GET',
+		headers: headers
+	}, function (error, response) {
+		callback(error, response)
+	})
 }
 
 /*
