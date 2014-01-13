@@ -153,18 +153,24 @@ BCS.prototype.request = function (options, callback) {
 			if (error) {
 				return callback(error)
 			}
-			if (contentType) req.setHeader('Content-Type', contentType)
-			if (contentLength) req.setHeader('Content-Length', contentLength)
+			if (contentType) {
+				req.setHeader('Content-Type', contentType)
+			}
+			if (contentLength) {
+				req.setHeader('Content-Length', contentLength)
+			}
 			fs.createReadStream(filepath).pipe(req)
 		})
 	}
 	function dealSourceWithBuffer(bufferSource) {
 		var contentLength = bufferSource.length
-		if (contentLength) req.setHeader('Content-Length', contentLength)
+		if (contentLength) {
+			req.setHeader('Content-Length', contentLength)
+		}
 		req.end(bufferSource)
 	}
 	function dealSourceWithStream(streamSource) {
-		fs.createReadStream(streamSource).pipe(req)
+		streamSource.pipe(req)
 	}
 }
 
@@ -271,13 +277,33 @@ BCS.prototype.deleteBucket = function (options, callback) {
 * put object
 *
 * options: {
-* 	bucket: ''
+* 	bucket: '',
+* 	object: '',
 * 	source: '',
-* 	contentType   // optional
+* 	headers: {} // optional
 * }
 */
 BCS.prototype.putObject = function (options, callback) {
+	options     = options || {}
+	callback    = callback || noop()
+	var headers = options.headers
+	var self    = this
 
+	// path
+	var path = '/' + options.bucket + '/' + options.object + '?sign=' + self.generateSign({
+		method: 'PUT',
+		bucket: options.bucket,
+		object: '/' + options.object
+	})
+
+	self.request({
+		path: path,
+		method: 'PUT',
+		headers: headers,
+		source: options.source
+	}, function (error, response) {
+		callback(error, response)
+	})
 }
 
 /*

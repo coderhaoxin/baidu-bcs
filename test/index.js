@@ -1,3 +1,4 @@
+var fs     = require('fs')
 var uid    = require('node-uuid')
 var should = require('should')
 
@@ -83,18 +84,48 @@ describe('object', function () {
 	var objectName05 = uid.v4().split('-').join('')
 
 	it('put object with file path', function (done) {
-		done()
+		bcs.putObject({
+			bucket: bucketName,
+			object: objectName01,
+			source: './index.js'
+		}, function (error, result) {
+			should.not.exist(error)
+			result.status.should.equal(200)
+			done()
+		})
 	})
 
 	it('put object with buffer', function (done) {
-		done()
+		bcs.putObject({
+			bucket: bucketName,
+			object: objectName02,
+			source: new Buffer('baidu-bcs'),
+			headers: {
+				'Content-Type': 'text/plain'
+			}
+		}, function (error, result) {
+			should.not.exist(error)
+			result.status.should.equal(200)
+			done()
+		})
 	})
 
 	it('put object with stream', function (done) {
-		done()
+		bcs.putObject({
+			bucket: bucketName,
+			object: objectName03,
+			source: fs.createReadStream(__filename),
+			headers: {
+				'Content-Type': 'text/plain'
+			}
+		}, function (error, result) {
+			should.not.exist(error)
+			result.status.should.equal(200)
+			done()
+		})
 	})
 
-	it('put object with stream and contentType', function (done) {
+	it('put object with stream and headers', function (done) {
 		done()
 	})
 
@@ -114,23 +145,23 @@ describe('object', function () {
 		done()
 	})
 
-	it('delete object', function (done) {
-		done()
-	})
+	// it('delete object', function (done) {
+	// 	done()
+	// })
 
-	it('delete copied object', function (done) {
-		done()
-	})
+	// it('delete copied object', function (done) {
+	// 	done()
+	// })
 
-	it('delete bucket', function (done) {
-		bcs.deleteBucket({
-			bucket: bucketName
-		}, function (error, result) {
-			should.not.exist(error)
-			result.status.should.equal(200)
-			done()
-		})
-	})
+	// it('delete bucket', function (done) {
+	// 	bcs.deleteBucket({
+	// 		bucket: bucketName
+	// 	}, function (error, result) {
+	// 		should.not.exist(error)
+	// 		result.status.should.equal(200)
+	// 		done()
+	// 	})
+	// })
 })
 
 describe('acl', function () {
