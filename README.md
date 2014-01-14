@@ -88,7 +88,8 @@ bcs.putObject({
 	object: '',
 	source: fs.createReadStream(__filename),
 	headers: {
-		'Content-Type': 'text/plain'
+		'Content-Type': 'text/plain',
+		'Content-Length': fs.statSync(__filename).size // important: the 'Content-Type' is must
 	}
 }, function (error, result) {})
 ```
@@ -99,18 +100,40 @@ put object with headers
 
 copy object
 ```js
+bcs.copyObject({
+	bucket: '',
+	object: '',
+	sourceBucket: '',
+	sourceObject: '',
+	headers: {
+		'Content-Type': ''
+	}
+}, function (error, result) {})
 ```
 
 head object
 ```js
+bcs.headObject({
+	bucket: '',
+	object: ''
+}, function (error, result) {})
 ```
 
 list object
 ```js
+bcs.listObject({
+	bucket: '',
+	start: 1,
+	limit: 1
+}, function (error, result) {})
 ```
 
 get object
 ```js
+bcs.getObject({
+	bucket: '',
+	object: '',
+}, function (error, result) {})
 ```
 
 delete bucket
@@ -138,4 +161,10 @@ bcs.getAcl({
 ### params note
 * bucket - bucket name
 * object - object name
+* headers - you can set http headers by this
+* sourceBucket - only for `copyObject()`
+* sourceObject - only for `copyObject()`
 * the `result` of callback is a object contain: `status`, `headers`, `body`
+
+### test
+* coverage: 94%

@@ -1,14 +1,14 @@
-var debug  = require('debug')('bcs')
 var fs     = require('fs')
 var crypto = require('crypto')
 var http   = require('http')
 var async  = require('async')
 var mime   = require('mime')
 var Stream = require('stream')
+
 function noop() {}
 
 var BCS = function (options) {
-	options = options || {}
+	options        = options || {}
 	this.accessKey = options.accessKey
 	this.secretKey = options.secretKey
 	this.host      = options.host || 'bcs.duapp.com'
@@ -85,8 +85,6 @@ BCS.prototype.request = function (options, callback) {
 		}).join('/')
 	}
 
-	debug('request options:\n', options)
-
 	var response = {}
 
 	var req = http.request(options, function (res) {
@@ -100,11 +98,12 @@ BCS.prototype.request = function (options, callback) {
 			response.body += chunk
 		})
 		res.on('end', function () {
-			debug('response:\n', response)
+			if ((res.headers['content-type'] === 'application/json') && response.body) {
+				try {
+					response.body = JSON.parse(response.body)
+				} catch (e) {}
+			}
 
-			try {
-				response.body = JSON.parse(response.body)
-			} catch (e) {}
 			callback(null, response)
 		})
 	})
@@ -153,7 +152,7 @@ BCS.prototype.request = function (options, callback) {
 			if (error) {
 				return callback(error)
 			}
-			if (contentType) {
+			if (contentType && !req.getHeader('Content-Type')) {
 				req.setHeader('Content-Type', contentType)
 			}
 			if (contentLength) {
@@ -190,9 +189,9 @@ BCS.prototype.putBucket = function (options, callback) {
 	var self = this
 
 	// headers
-	var headers = {
-		'Content-Length': 0
-	}
+	var headers = options.headers || {}
+	headers['Content-Length'] = 0
+
 	if (options.acl) {
 		headers['x-bs-acl'] = options.acl
 	}
@@ -250,9 +249,9 @@ BCS.prototype.deleteBucket = function (options, callback) {
 	var self = this
 
 	// headers
-	var headers = {
-		'Content-Length': 0
-	}
+	var headers = options.headers || {}
+	headers['Content-Length'] = 0
+
 	if (options.acl) {
 		headers['x-bs-acl'] = options.acl
 	}
@@ -284,10 +283,12 @@ BCS.prototype.deleteBucket = function (options, callback) {
 * }
 */
 BCS.prototype.putObject = function (options, callback) {
-	options     = options || {}
-	callback    = callback || noop()
-	var headers = options.headers
-	var self    = this
+	options  = options || {}
+	callback = callback || noop()
+	var self = this
+
+	// headers
+	var headers = options.headers || {}
 
 	// path
 	var path = '/' + options.bucket + '/' + options.object + '?sign=' + self.generateSign({
@@ -308,44 +309,166 @@ BCS.prototype.putObject = function (options, callback) {
 
 /*
 * copy object
+*
+* option: {
+* 	sourceBucket: '',
+* 	sourceObject: '',
+* 	bucket: '',
+* 	object: ''
+}
 */
 BCS.prototype.copyObject = function (options, callback) {
+	options  = options || {}
+	callback = callback || noop()
+	var self = this
 
+// headers
+	var headers = options.headers || {}
+	headers['Content-Length'] = 0
+	headers['x-bs-copy-source'] = 'http://bcs.duapp.com/' + options.sourceBucket +'/' + options.sourceObject
+
+	// path
+	var path = '/' + options.bucket + '/' + options.object + '?sign=' + self.generateSign({
+		method: 'PUT',
+		bucket: options.bucket,
+		object: '/' + options.object
+	})
+
+	self.request({
+		path: path,
+		method: 'PUT',
+		headers: headers,
+		source: options.source
+	}, function (error, response) {
+		callback(error, response)
+	})
 }
 
 /*
 * put superfile
 */
 BCS.prototype.putSuperfile = function (options, callback) {
-
+	// todo......
 }
 
 /*
 * get object
 */
 BCS.prototype.getObject = function (options, callback) {
+	options  = options || {}
+	callback = callback || noop()
+	var self = this
 
+// headers
+	var headers = options.headers || {}
+	headers['Content-Length'] = 0
+
+	// path
+	var path = '/' + options.bucket + '/' + options.object + '?sign=' + self.generateSign({
+		method: 'GET',
+		bucket: options.bucket,
+		object: '/' + options.object
+	})
+
+	self.request({
+		path: path,
+		method: 'GET',
+		headers: headers,
+	}, function (error, response) {
+		callback(error, response)
+	})
 }
 
 /*
 * head object
 */
 BCS.prototype.headObject = function (options, callback) {
+	options  = options || {}
+	callback = callback || noop
+	var self = this
 
+	// headers
+	var headers = options.headers || {}
+	headers['Content-Length'] = 0
+
+	// path
+	var path = '/' + options.bucket + '/' + options.object + '?sign=' + self.generateSign({
+		method: 'HEAD',
+		bucket: options.bucket,
+		object: '/' + options.object
+	})
+
+	self.request({
+		path: path,
+		method: 'HEAD',
+		headers: headers
+	}, function (error, response) {
+		callback(error, response)
+	})
 }
 
 /*
 * list object
+*
+* options: {
+* 	bucket: ''
+* 	start: 0,    // optional, default: 0
+* 	limit: 30    // optional, default: 1000
+}
 */
 BCS.prototype.listObject = function (options, callback) {
+	options       = options || {}
+	options.start = options.start || 0
+	options.limit = options.limit || 1000
+	callback      = callback || noop
+	var self      = this
 
+	// headers
+	var headers = options.headers || {}
+	headers['Content-Length'] = 0
+
+	// path
+	var path = '/' + options.bucket + '?sign=' + self.generateSign({
+		method: 'GET',
+		bucket: options.bucket,
+		object: '/'
+	}) + '&start=' + options.start + '&limit=' + options.limit
+
+	self.request({
+		path: path,
+		method: 'GET',
+		headers: headers
+	}, function (error, response) {
+		callback(error, response)
+	})
 }
 
 /*
 * delete object
 */
 BCS.prototype.deleteObject = function (options, callback) {
+	options  = options || {}
+	callback = callback || noop
+	var self = this
 
+	// headers
+	var headers = options.headers || {}
+	headers['Content-Length'] = 0
+
+	// path
+	var path = '/' + options.bucket + '/' + options.object + '?sign=' + self.generateSign({
+		method: 'DELETE',
+		bucket: options.bucket,
+		object: '/' + options.object
+	})
+
+	self.request({
+		path: path,
+		method: 'DELETE',
+		headers: headers
+	}, function (error, response) {
+		callback(error, response)
+	})
 }
 
 /*
@@ -357,9 +480,8 @@ BCS.prototype.putAcl = function (options, callback) {
 	var self = this
 
 	// headers
-	var headers = {
-		'Content-Length': 0
-	}
+	var headers = options.headers || {}
+	headers['Content-Length'] = 0
 	headers['x-bs-acl'] = options.acl
 
 
@@ -388,9 +510,8 @@ BCS.prototype.getAcl = function (options, callback) {
 	var self = this
 
 	// headers
-	var headers = {
-		'Content-Length': 0
-	}
+	var headers = options.headers || {}
+	headers['Content-Length'] = 0
 
 	// path
 	var path = '/' + options.bucket + '?acl=1&sign=' + self.generateSign({

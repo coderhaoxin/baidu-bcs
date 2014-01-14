@@ -2,11 +2,10 @@ var fs     = require('fs')
 var uid    = require('node-uuid')
 var should = require('should')
 
+var config = require('./config')
+
 var BCS = require('../index')
-var bcs = BCS.createClient({
-	accessKey: '',
-	secretKey: ''
-})
+var bcs = BCS.createClient(config)
 
 describe('bucket', function () {
 	var bucketName01 = 'bucket' + uid.v4().split('-').join('')
@@ -114,7 +113,41 @@ describe('object', function () {
 		bcs.putObject({
 			bucket: bucketName,
 			object: objectName03,
-			source: fs.createReadStream(__filename),
+			source: fs.createReadStream(__dirname + '/config.js'),
+			headers: {
+				'Content-Type': 'text/plain',
+				'Content-Length': fs.statSync(__dirname + '/config.js').size
+			}
+		}, function (error, result) {
+			should.not.exist(error)
+			result.status.should.equal(200)
+			done()
+		})
+	})
+
+	it('put object with stream and headers', function (done) {
+		bcs.putObject({
+			bucket: bucketName,
+			object: objectName04,
+			source: fs.createReadStream(__dirname + '/config.js'),
+			headers: {
+				'Content-Type': 'text/plain',
+				'Content-Length': fs.statSync(__dirname + '/config.js').size,
+				'x-bs-meta-type': 'stream'
+			}
+		}, function (error, result) {
+			should.not.exist(error)
+			result.status.should.equal(200)
+			done()
+		})
+	})
+
+	it('copy object', function (done) {
+		bcs.copyObject({
+			bucket: bucketName,
+			object: objectName05,
+			sourceBucket: bucketName,
+			sourceObject: objectName04,
 			headers: {
 				'Content-Type': 'text/plain'
 			}
@@ -125,43 +158,72 @@ describe('object', function () {
 		})
 	})
 
-	it('put object with stream and headers', function (done) {
-		done()
-	})
-
-	it('copy object', function (done) {
-		done()
-	})
-
 	it('head object', function (done) {
-		done()
+		bcs.headObject({
+			bucket: bucketName,
+			object: objectName04
+		}, function (error, result) {
+			should.not.exist(error)
+			result.status.should.equal(200)
+			result.headers['x-bs-meta-type'].should.equal('stream')
+			result.headers['content-type'].should.equal('text/plain')
+			done()
+		})
 	})
 
 	it('list object', function (done) {
-		done()
+		bcs.listObject({
+			bucket: bucketName,
+			start: 1,
+			limit: 1
+		}, function (error, result) {
+			should.not.exist(error)
+			result.status.should.equal(200)
+			result.body.object_total.should.above(1)
+			done()
+		})
 	})
 
 	it('get object', function (done) {
-		done()
+		bcs.getObject({
+			bucket: bucketName,
+			object: objectName02,
+		}, function (error, result) {
+			should.not.exist(error)
+			result.status.should.equal(200)
+			result.body.should.equal('baidu-bcs')
+			done()
+		})
 	})
 
-	// it('delete object', function (done) {
-	// 	done()
-	// })
+	it('delete object', function (done) {
+		var a      = [objectName01, objectName02, objectName03, objectName04, objectName05]
+		var length = a.length
+		var count  = 0
+		a.forEach(function (eachObjectName) {
+			bcs.deleteObject({
+				bucket: bucketName,
+				object: eachObjectName
+			}, function (error, result) {
+				should.not.exist(error)
+				result.status.should.equal(200)
+				count++
+				if (count === length) {
+					done()
+				}
+			})
+		})
+	})
 
-	// it('delete copied object', function (done) {
-	// 	done()
-	// })
-
-	// it('delete bucket', function (done) {
-	// 	bcs.deleteBucket({
-	// 		bucket: bucketName
-	// 	}, function (error, result) {
-	// 		should.not.exist(error)
-	// 		result.status.should.equal(200)
-	// 		done()
-	// 	})
-	// })
+	it('delete bucket', function (done) {
+		bcs.deleteBucket({
+			bucket: bucketName
+		}, function (error, result) {
+			should.not.exist(error)
+			result.status.should.equal(200)
+			done()
+		})
+	})
 })
 
 describe('acl', function () {

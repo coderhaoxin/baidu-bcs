@@ -1,10 +1,10 @@
 {
   "name": "baidu-bcs",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "baidu bcs node.js sdk",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "make test-all"
   },
   "repository": {
     "type": "git",
@@ -16,6 +16,11 @@
     "store",
     "bcs"
   ],
+  "config": {
+    "blanket": {
+      "pattern": "baidu-bcs/index.js"
+    }
+  },
   "author": "haoxin",
   "license": "BSD-2-Clause",
   "bugs": {
@@ -27,9 +32,11 @@
     "async": "~0.2.9"
   },
   "devDependencies": {
-    "should": "~2.1.1",
-    "debug": "~0.7.4",
-    "node-uuid": "~1.4.1"
+    "should": "*",
+    "node-uuid": "*",
+    "travis-cov": "*",
+    "blanket": "*",
+    "mocha": "*"
   },
   "directories": {
     "test": "test"
