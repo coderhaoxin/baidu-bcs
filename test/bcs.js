@@ -86,7 +86,7 @@ describe('object', function() {
     bcs.putObject({
       bucket: bucketName,
       object: objectName01,
-      source: './index.js'
+      source: __filename
     }, function(error, result) {
       should.not.exist(error)
       result.status.should.equal(200)
@@ -184,7 +184,7 @@ describe('object', function() {
     })
   })
 
-  it('get object', function(done) {
+  it('get object no dest', function(done) {
     bcs.getObject({
       bucket: bucketName,
       object: objectName02,
@@ -192,6 +192,42 @@ describe('object', function() {
       should.not.exist(error)
       result.status.should.equal(200)
       result.body.should.equal('baidu-bcs')
+      done()
+    })
+  })
+
+  it('get object with dest(file path)', function(done) {
+    var path = __dirname + '/xxoo.download'
+    bcs.getObject({
+      bucket: bucketName,
+      object: objectName01,
+      dest: path
+    }, function(error, result) {
+      should.not.exist(error)
+      result.status.should.equal(200)
+      result.body.should.equal('write to stream success')
+      fs.statSync(path).size.should.equal(fs.statSync(__filename).size)
+      fs.readFileSync(path, 'utf8').should.equal(fs.readFileSync(__filename, 'utf8'))
+      fs.unlinkSync(path)
+      done()
+    })
+  })
+
+  it('get object with dest(write stream)', function(done) {
+    var path = __dirname + '/ooxx.download'
+    var writeStream = fs.createWriteStream(path)
+
+    bcs.getObject({
+      bucket: bucketName,
+      object: objectName01,
+      dest: writeStream
+    }, function(error, result) {
+      should.not.exist(error)
+      result.status.should.equal(200)
+      result.body.should.equal('write to stream success')
+      fs.statSync(path).size.should.equal(fs.statSync(__filename).size)
+      fs.readFileSync(path, 'utf8').should.equal(fs.readFileSync(__filename, 'utf8'))
+      fs.unlinkSync(path)
       done()
     })
   })
@@ -267,6 +303,20 @@ describe('acl', function() {
     }, function(error, result) {
       should.not.exist(error)
       result.status.should.equal(200)
+      done()
+    })
+  })
+})
+
+describe('bcs error handle', function() {
+  it('get bucket acl, should error', function(done) {
+    bcs.getAcl({
+      bucket: 'invalidBucketName'
+    }, function(error, result) {
+      should.exist(error)
+      should.not.exist(result)
+      error.status.should.equal(400)
+      error.code.should.equal('-1000')
       done()
     })
   })

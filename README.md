@@ -136,6 +136,25 @@ bcs.getObject({
 }, function (error, result) {})
 ```
 
+get object to file path
+```js
+bcs.getObject({
+  bucket: '',
+  object: '',
+  dest: './xxoo.xo'
+}, function (error, result) {})
+```
+
+get object to write stream
+```js
+var writeStream = fs.createWriteStream('./xxoo.xo')
+bcs.getObject({
+  bucket: '',
+  object: '',
+  dest: writeStream
+}, function (error, result) {})
+```
+
 delete bucket
 ```js
 bcs.deleteBucket({
@@ -167,4 +186,7 @@ bcs.getAcl({
 * the `result` of callback is a object contain: `status`, `headers`, `body`
 
 ### test
-* coverage: 94%
+coverage: 94%
+
+### License
+MIT

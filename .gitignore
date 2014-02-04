@@ -1,4 +1,5 @@
 .DS_Store
 npm-debug.log
 test/config.js
+test/*.download
 node_modules/
