@@ -26,24 +26,24 @@ create bcs client
 ```js
 var BCS = require('baidu-bcs')
 var bcs = BCS.createClient({
-	accessKey: 'your access key',
-	secretKey: 'your secret key'
+  accessKey: 'your access key',
+  secretKey: 'your secret key'
 })
 ```
 
 put bucket
 ```js
 bcs.putBucket({
-	bucket: '',
-	acl: ''
+  bucket: '',
+  acl: ''
 }, function (error, result) {})
 ```
 
 put bucket with acl
 ```js
 bcs.putBucket({
-	bucket: '',
-	acl: ''
+  bucket: '',
+  acl: ''
 }, function (error, result) {})
 ```
 
@@ -55,16 +55,16 @@ bcs.listBucket(function (error, result) {})
 delete bucket
 ```js
 bcs.deleteBucket({
-	bucket: ''
+  bucket: ''
 }, function (error, result) {})
 ```
 
 put object with file path
 ```js
 bcs.putObject({
-	bucket: '',
-	object: '',
-	source: './index.js'
+  bucket: '',
+  object: '',
+  source: './index.js'
 }, function (error, result) {})
 ```
 
@@ -72,25 +72,25 @@ bcs.putObject({
 put object with buffer
 ```js
 bcs.putObject({
-	bucket: '',
-	object: '',
-	source: new Buffer('baidu-bcs'),
-	headers: {
-		'Content-Type': 'text/plain'
-	}
+  bucket: '',
+  object: '',
+  source: new Buffer('baidu-bcs'),
+  headers: {
+    'Content-Type': 'text/plain'
+  }
 }, function (error, result) {})
 ```
 
 put object with stream
 ```js
 bcs.putObject({
-	bucket: '',
-	object: '',
-	source: fs.createReadStream(__filename),
-	headers: {
-		'Content-Type': 'text/plain',
-		'Content-Length': fs.statSync(__filename).size // important: the 'Content-Type' is must
-	}
+  bucket: '',
+  object: '',
+  source: fs.createReadStream(__filename),
+  headers: {
+    'Content-Type': 'text/plain',
+    'Content-Length': fs.statSync(__filename).size // important: the 'Content-Type' is must
+  }
 }, function (error, result) {})
 ```
 
@@ -101,60 +101,60 @@ put object with headers
 copy object
 ```js
 bcs.copyObject({
-	bucket: '',
-	object: '',
-	sourceBucket: '',
-	sourceObject: '',
-	headers: {
-		'Content-Type': ''
-	}
+  bucket: '',
+  object: '',
+  sourceBucket: '',
+  sourceObject: '',
+  headers: {
+    'Content-Type': ''
+  }
 }, function (error, result) {})
 ```
 
 head object
 ```js
 bcs.headObject({
-	bucket: '',
-	object: ''
+  bucket: '',
+  object: ''
 }, function (error, result) {})
 ```
 
 list object
 ```js
 bcs.listObject({
-	bucket: '',
-	start: 1,
-	limit: 1
+  bucket: '',
+  start: 1,
+  limit: 1
 }, function (error, result) {})
 ```
 
 get object
 ```js
 bcs.getObject({
-	bucket: '',
-	object: '',
+  bucket: '',
+  object: '',
 }, function (error, result) {})
 ```
 
 delete bucket
 ```js
 bcs.deleteBucket({
-	bucket: ''
+  bucket: ''
 }, function (error, result) {})
 ```
 
 put acl
 ```js
 bcs.putAcl({
-	bucket: '',
-	acl: 'private'
+  bucket: '',
+  acl: 'private'
 }, function (error, result) {})
 ```
 
 get acl
 ```js
 bcs.getAcl({
-	bucket: ''
+  bucket: ''
 }, function (error, result) {})
 ```
 

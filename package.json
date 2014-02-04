@@ -1,6 +1,6 @@
 {
   "name": "baidu-bcs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "baidu bcs node.js sdk",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
   ],
   "config": {
     "blanket": {
-      "pattern": "baidu-bcs/index.js"
+      "pattern": "baidu-bcs/lib"
     }
   },
   "author": "haoxin",
@@ -28,8 +28,7 @@
   },
   "homepage": "https://github.com/coderhaoxin/baidu-bcs",
   "dependencies": {
-    "mime": "~1.2.11",
-    "async": "~0.2.9"
+    "mime": "~1.2.11"
   },
   "devDependencies": {
     "should": "*",
