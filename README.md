@@ -1,3 +1,5 @@
+[![NPM](https://nodei.co/npm/baidu-bcs.png?downloads=true)](https://nodei.co/npm/baidu-bcs/)
+
 ### baidu-bcs
 * baidu bcs node.js sdk
 
