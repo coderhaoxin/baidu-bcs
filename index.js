@@ -1,1 +1,3 @@
-module.exports = require('./lib/bcs')
+'use strict';
+
+module.exports = require('./lib/bcs');

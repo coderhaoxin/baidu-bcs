@@ -26,11 +26,11 @@ npm install baidu-bcs
 
 create bcs client
 ```js
-var BCS = require('baidu-bcs')
-var bcs = BCS.createClient({
+var BCS = require('baidu-bcs'),
+  bcs = BCS.createClient({
   accessKey: 'your access key',
   secretKey: 'your secret key'
-})
+});
 ```
 
 put bucket
@@ -38,7 +38,7 @@ put bucket
 bcs.putBucket({
   bucket: '',
   acl: ''
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 put bucket with acl
@@ -46,19 +46,19 @@ put bucket with acl
 bcs.putBucket({
   bucket: '',
   acl: ''
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 list bucket
 ```js
-bcs.listBucket(function (error, result) {})
+bcs.listBucket(function (error, result) {});
 ```
 
 delete bucket
 ```js
 bcs.deleteBucket({
   bucket: ''
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 put object with file path
@@ -67,7 +67,7 @@ bcs.putObject({
   bucket: '',
   object: '',
   source: './index.js'
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 
@@ -80,7 +80,7 @@ bcs.putObject({
   headers: {
     'Content-Type': 'text/plain'
   }
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 put object with stream
@@ -93,11 +93,19 @@ bcs.putObject({
     'Content-Type': 'text/plain',
     'Content-Length': fs.statSync(__filename).size // important: the 'Content-Type' is must
   }
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 put object with headers
 ```js
+bcs.putObject({
+  bucket: '',
+  object: '',
+  source: './index.js',
+  headers: {
+    'Content-Type': 'text/javascript'
+  }
+}, function (error, result) {});
 ```
 
 copy object
@@ -110,7 +118,7 @@ bcs.copyObject({
   headers: {
     'Content-Type': ''
   }
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 head object
@@ -118,7 +126,7 @@ head object
 bcs.headObject({
   bucket: '',
   object: ''
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 list object
@@ -127,7 +135,7 @@ bcs.listObject({
   bucket: '',
   start: 1,
   limit: 1
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 get object
@@ -135,7 +143,7 @@ get object
 bcs.getObject({
   bucket: '',
   object: '',
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 get object to file path
@@ -144,7 +152,7 @@ bcs.getObject({
   bucket: '',
   object: '',
   dest: './xxoo.xo'
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 get object to write stream
@@ -154,14 +162,14 @@ bcs.getObject({
   bucket: '',
   object: '',
   dest: writeStream
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 delete bucket
 ```js
 bcs.deleteBucket({
   bucket: ''
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 put acl
@@ -169,14 +177,14 @@ put acl
 bcs.putAcl({
   bucket: '',
   acl: 'private'
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 get acl
 ```js
 bcs.getAcl({
   bucket: ''
-}, function (error, result) {})
+}, function (error, result) {});
 ```
 
 ### params note
