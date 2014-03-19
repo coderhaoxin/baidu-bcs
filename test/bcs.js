@@ -41,6 +41,14 @@ describe('bucket', function() {
     });
   });
 
+  it('list bucket', function(done) {
+    bcs.listBucket(function(error, result) {
+      should.not.exist(error);
+      result.body.length.should.above(1);
+      done();
+    });
+  });
+
   it('delete bucket', function(done) {
     bcs.deleteBucket({
       bucket: bucketName01

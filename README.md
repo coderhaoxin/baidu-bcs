@@ -26,11 +26,24 @@ npm install baidu-bcs
 
 create bcs client
 ```js
-var BCS = require('baidu-bcs'),
-  bcs = BCS.createClient({
+var BCS = require('baidu-bcs');
+var bcs = BCS.createClient({
   accessKey: 'your access key',
   secretKey: 'your secret key'
 });
+
+/*
+ * 可选 option
+ *
+ * host:     default: bcs.duapp.com,
+ * port:     default: 80
+ * protocol: default: http:
+ * timeout:  default: 300000 // 5 minutes
+ * ip:       // 允许上传的ip，默认为空，即：不限制ip
+ * time:     // 有效时间
+ * size:     // 限制上传最大字节
+ * agent:    default: agent.maxSockets = 20
+ */
 ```
 
 put bucket
@@ -196,7 +209,7 @@ bcs.getAcl({
 * the `result` of callback is a object contain: `status`, `headers`, `body`
 
 ### test
-coverage: 94%
+coverage: 93%
 
 ### License
 MIT
