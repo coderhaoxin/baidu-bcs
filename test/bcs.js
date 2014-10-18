@@ -1,15 +1,16 @@
 'use strict';
 
-var fs = require('fs'),
+var config = require('./config'),
   uid = require('node-uuid'),
   should = require('should'),
-  config = require('./config'),
-  BCS = require('../index'),
-  bcs = BCS.createClient(config);
+  BCS = require('..'),
+  fs = require('fs');
+
+var bcs = BCS.createClient(config);
 
 describe('bucket', function() {
-  var bucketName01 = 'bucket' + uid.v4().split('-').join(''),
-    bucketName02 = 'bucket' + uid.v4().split('-').join('');
+  var bucketName01 = 'bucket' + uid.v4(),
+    bucketName02 = 'bucket' + uid.v4();
 
   it('list bucket', function(done) {
     bcs.listBucket(function(error, result) {
@@ -71,7 +72,7 @@ describe('bucket', function() {
 });
 
 describe('object', function() {
-  var bucketName = 'bucket' + uid.v4().split('-').join('');
+  var bucketName = 'bucket' + uid.v4();
 
   it('put bucket with acl', function(done) {
     bcs.putBucket({
@@ -84,11 +85,11 @@ describe('object', function() {
     });
   });
 
-  var objectName01 = uid.v4().split('-').join(''),
-    objectName02 = uid.v4().split('-').join(''),
-    objectName03 = uid.v4().split('-').join(''),
-    objectName04 = uid.v4().split('-').join(''),
-    objectName05 = uid.v4().split('-').join('');
+  var objectName01 = uid.v4(),
+    objectName02 = uid.v4(),
+    objectName03 = uid.v4(),
+    objectName04 = uid.v4(),
+    objectName05 = uid.v4();
 
   it('put object with file path', function(done) {
     bcs.putObject({
@@ -271,7 +272,7 @@ describe('object', function() {
 });
 
 describe('acl', function() {
-  var bucketName = 'bucket' + uid.v4().split('-').join('');
+  var bucketName = 'bucket' + uid.v4();
 
   it('put bucket with acl', function(done) {
     bcs.putBucket({
@@ -325,6 +326,25 @@ describe('bcs error handle', function() {
       should.not.exist(result);
       error.status.should.equal(400);
       error.code.should.equal('-1000');
+      done();
+    });
+  });
+
+  it('invalid bcs client - key', function(done) {
+    var invalidClient = BCS.createClient({
+      access: 'accessKey',
+      secretKey: 'secretKey',
+      time: 5000,
+      ip: '1.0.0.1',
+      size: 5000,
+      agent: false
+    });
+
+    invalidClient.listBucket(function(error, result) {
+      should.exist(error);
+      should.not.exist(result);
+      error.status.should.equal(403);
+      error.code.should.equal('-19');
       done();
     });
   });

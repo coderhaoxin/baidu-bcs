@@ -1,7 +1,9 @@
-[![NPM](https://nodei.co/npm/baidu-bcs.png?downloads=true)](https://nodei.co/npm/baidu-bcs/)
+[![NPM version][npm-img]][npm-url]
+[![License][license-img]][license-url]
+[![Dependency status][david-img]][david-url]
 
 ### baidu-bcs
-* baidu bcs node.js sdk
+* baidu bcs node.js sdk, friendly with **co**, **koa** ...
 
 ### install
 ```bash
@@ -28,8 +30,8 @@ create bcs client
 ```js
 var BCS = require('baidu-bcs');
 var bcs = BCS.createClient({
-  accessKey: 'your access key',
-  secretKey: 'your secret key'
+  accessKey: 'access key',
+  secretKey: 'secret key'
 });
 
 /*
@@ -203,13 +205,35 @@ bcs.getAcl({
 ### params note
 * bucket - bucket name
 * object - object name
-* headers - you can set http headers by this
+* headers - http headers
 * sourceBucket - only for `copyObject()`
 * sourceObject - only for `copyObject()`
 * the `result` of callback is a object contain: `status`, `headers`, `body`
 
+### use with `co` or `koa`
+
+```js
+var option = {
+  wrapper: 'thunk', // or: promise
+  accessKey: '',
+  secretKey: ''
+};
+
+var bcs = BCS.createClient(option);
+
+// in co or koa
+yield bcs.listBucket();
+```
+
 ### test
-coverage: 93%
+coverage: 97%
 
 ### License
 MIT
+
+[npm-img]: https://img.shields.io/npm/v/baidu-bcs.svg?style=flat-square
+[npm-url]: https://npmjs.org/package/baidu-bcs
+[license-img]: https://img.shields.io/badge/license-MIT-green.svg?style=flat-square
+[license-url]: http://opensource.org/licenses/MIT
+[david-img]: https://img.shields.io/david/coderhaoxin/baidu-bcs.svg?style=flat-square
+[david-url]: https://david-dm.org/coderhaoxin/baidu-bcs
