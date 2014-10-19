@@ -93,23 +93,26 @@ BCS.prototype.request = function(options, callback) {
 
     response.status = res.statusCode;
     response.headers = res.headers;
-    response.body = '';
+
+    var chunks = [],
+      size = 0;
 
     if (options.dest) {
       wstream = (typeof options.dest === 'string') ? fs.createWriteStream(options.dest) : options.dest;
       res.pipe(wstream);
+
       wstream.on('finish', function() {
         response.body = 'write to stream success';
         callback(null, response);
       });
+
       wstream.on('error', function(error) {
-        callback(error, null);
+        callback(error);
       });
     } else {
-      res.setEncoding('utf8');
-
       res.on('data', function(chunk) {
-        response.body += chunk;
+        chunks.push(chunk);
+        size += chunk.length;
       });
     }
 
@@ -117,30 +120,39 @@ BCS.prototype.request = function(options, callback) {
       if (options.dest) {
         return;
       }
-      if ((res.headers['content-type'] === 'application/json') && response.body) {
+
+      response.body = Buffer.concat(chunks, size);
+
+      if ((res.headers['content-type'] === 'application/json') && size) {
         try {
           response.body = JSON.parse(response.body);
-        } catch (e) {}
+        } catch (e) {
+          e.status = response.status;
+          e.code = 'JSON Parse Error';
+          return callback(e);
+        }
       }
 
       if (response.status >= 400) {
         var error = new Error(),
           errorMessage = response.body && response.body.Error;
+
         if (errorMessage) {
           error.code = errorMessage.code;
           error.status = response.status;
           error.message = errorMessage.Message;
           error.requestId = errorMessage.RequestId;
         }
-        callback(error, null);
-      } else {
-        callback(null, response);
+
+        return callback(error);
       }
+
+      callback(null, response);
     });
   });
 
   req.on('error', function(error) {
-    callback(error, null);
+    callback(error);
   });
 
   /*

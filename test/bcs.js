@@ -182,6 +182,17 @@ describe('object', function() {
 
   it('list object', function(done) {
     bcs.listObject({
+      bucket: bucketName
+    }, function(error, result) {
+      should.not.exist(error);
+      result.status.should.equal(200);
+      result.body.object_total.should.above(1);
+      done();
+    });
+  });
+
+  it('list object', function(done) {
+    bcs.listObject({
       bucket: bucketName,
       start: 1,
       limit: 1
@@ -200,7 +211,7 @@ describe('object', function() {
     }, function(error, result) {
       should.not.exist(error);
       result.status.should.equal(200);
-      result.body.should.equal('baidu-bcs');
+      result.body.toString().should.equal('baidu-bcs');
       done();
     });
   });
@@ -330,6 +341,18 @@ describe('bcs error handle', function() {
     });
   });
 
+  it('put object with invalid file path', function(done) {
+    bcs.putObject({
+      bucket: 'bucketName',
+      object: 'objectName',
+      source: '/xxoo'
+    }, function(error) {
+      should.exist(error);
+      error.message.should.equal('ENOENT, stat \'/xxoo\'');
+      done();
+    });
+  });
+
   it('invalid bcs client - key', function(done) {
     var invalidClient = BCS.createClient({
       access: 'accessKey',
@@ -345,6 +368,24 @@ describe('bcs error handle', function() {
       should.not.exist(result);
       error.status.should.equal(403);
       error.code.should.equal('-19');
+      done();
+    });
+  });
+
+  it('invalid bcs client - host', function(done) {
+    var invalidClient = BCS.createClient({
+      access: 'accessKey',
+      secretKey: 'secretKey',
+      host: 'localhost',
+      time: 5000,
+      ip: '1.0.0.1',
+      size: 5000,
+      agent: false
+    });
+
+    invalidClient.listBucket(function(error, result) {
+      should.exist(error);
+      should.not.exist(result);
       done();
     });
   });
